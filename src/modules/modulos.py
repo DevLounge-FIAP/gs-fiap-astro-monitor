@@ -53,19 +53,17 @@ class Sistema:
 class SistemaGeracaoSolar(Sistema):
     '''Painéis Solares.'''
     def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: int):
-        ...
-    
+        super().__init__(nome, capacidade_max_geracao, geracao_atual, capacidade_max_armazenamento = 0)
 
 class SistemaGeracaoEolica(Sistema):
     '''Turbinas Eolicas.'''
     def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: int):
-        ...
+        super().__init__(nome, capacidade_max_geracao, geracao_atual, capacidade_max_armazenamento = 0)
 
 class SistemaArmazenamentoEnergetico(Sistema):
     '''Sistema de baterias.'''
     def __init__(self, nome: str, capacidade_max_armazenamento: int):
-        ...
-
+      
 class Sensores: 
     '''Classe para representar os sensores da missão.'''
     def __init__(self, nome: str, tipo: str, funcao: str, leitura: str, unidade: str, integridadeEstrutural: float = 100.0):
@@ -96,4 +94,7 @@ class SensorVelocidadeVento(Sensores):
 class SensorNivelEnergia(Sensores):
     '''Sensor de Nivel de Energia.'''
     def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
-        ...        
+
+    '''Sistema de Baterias.'''
+    def __init__(self, nome: str, capacidade_max_armazenamento: int = 100):
+        super().__init__(nome, capacidade_max_geracao=0, geracao_atual=0, capacidade_max_armazenamento=capacidade_max_armazenamento)
