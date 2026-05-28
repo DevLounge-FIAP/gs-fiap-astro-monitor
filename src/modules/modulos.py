@@ -1,14 +1,36 @@
 
+#-----------------Classe Pai-----------------#
 class Missao_espacial:
     '''
     Parte central da missão. Agrega todos os módulos e sistemas.
     '''
     def __init__(self):
-        self.modulos = []
-        self.sistemas = []
-        self.sensores = []
+        #Dic pra garantintir acesso O(1) em vez de lista que usava for
+        self.modulos = {}
+        #Pilha de eventos, um entra em cima do outro no log  (LIFO)
+        self.log_eventos_criticos = []
 
+    def adicionar_modulo(self, modulo):
+        '''Método para inserir um módulo no dicionário.
+        Ele pega 'id_nome' do obejto e a transforma na Chave.
+        '''
+        self.modulos[modulo.id_nome] = modulo
+        print(f"Módulo {modulo.id_nome} ({modulo.tipo} adicionado!!)")
 
+    def registrar_evento_critico(self, evento: str):
+        '''
+        Faz o PUSH (inserção no topo) de um evento na pilha (LIFO)
+        '''
+        self.log_eventos_criticos.append(evento)
+
+    def obter_ultimo_evento(self):
+        '''
+        Exibe qual foi o último evento crítico sem removê-lo da pilha.
+        '''
+        if len(self.log_eventos_criticos) > 0:
+            return self.log_eventos_criticos[-1] # -1 é sempre o índice do último elemento adicionado a pilha.
+        return "Nenhum evento crítico registrado." #Esse é o else caso não tenha evento na pilha
+#-----------------Modulos-----------------#
 class Modulo:
     '''
     Representação de um módulo físico da missão
@@ -34,7 +56,7 @@ class Modulo:
         estado = "Ligado" if self.status else "Desligado"
         return f"Módulo: {self.id_nome} ({self.funcao}) [{estado}] Criticidade: {self.criticidade}"
 
-
+#-----------------Sistemas-----------------#
 class Sistema:
     '''Classe que representa os sistemas, tanto de geração quanto armazenamento'''
     def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: int, capacidade_max_armazenamento: int):
@@ -62,8 +84,10 @@ class SistemaGeracaoEolica(Sistema):
 
 class SistemaArmazenamentoEnergetico(Sistema):
     '''Sistema de baterias.'''
-    def __init__(self, nome: str, capacidade_max_armazenamento: int):
-      
+    def __init__(self, nome: str, capacidade_max_armazenamento: int = 100):
+        super().__init__(nome, capacidade_max_geracao=0, geracao_atual=0, capacidade_max_armazenamento=capacidade_max_armazenamento)
+
+#-----------------Sensores-----------------#
 class Sensores: 
     '''Classe para representar os sensores da missão.'''
     def __init__(self, nome: str, tipo: str, funcao: str, leitura: str, unidade: str, integridadeEstrutural: float = 100.0):
@@ -94,7 +118,4 @@ class SensorVelocidadeVento(Sensores):
 class SensorNivelEnergia(Sensores):
     '''Sensor de Nivel de Energia.'''
     def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
-
-    '''Sistema de Baterias.'''
-    def __init__(self, nome: str, capacidade_max_armazenamento: int = 100):
-        super().__init__(nome, capacidade_max_geracao=0, geracao_atual=0, capacidade_max_armazenamento=capacidade_max_armazenamento)
+        ...
