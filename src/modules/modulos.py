@@ -54,6 +54,7 @@ class SistemaGeracaoSolar(Sistema):
     '''Painéis Solares.'''
     def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: int):
         ...
+    
 
 class SistemaGeracaoEolica(Sistema):
     '''Turbinas Eolicas.'''
@@ -64,3 +65,35 @@ class SistemaArmazenamentoEnergetico(Sistema):
     '''Sistema de baterias.'''
     def __init__(self, nome: str, capacidade_max_armazenamento: int):
         ...
+
+class Sensores: 
+    '''Classe para representar os sensores da missão.'''
+    def __init__(self, nome: str, tipo: str, funcao: str, leitura: str, unidade: str, integridadeEstrutural: float = 100.0):
+        '''
+        Args:
+            nome: Nome do sensor.
+            tipo: Categoria do sensor (Sensor de Temperatura, Sensor de Pressão, Sensor de Umidade, Sensor de Radiação, Sensor de Movimento)
+            funcao: Descrição da função do sensor.
+            leitura: Valor atual da leitura do sensor.
+            unidade: Unidade da leitura (°C, hPa, %, mSv/h, m/s²)
+        '''
+        self.nome = nome
+        self.tipo = tipo
+        self.funcao = funcao
+        self.leitura = leitura
+        self.unidade = unidade
+        
+class SensorIrradiacao(Sensores):
+    '''Sensor de Irradiacao.'''
+    def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
+        ...        
+
+class SensorVelocidadeVento(Sensores):
+    '''Sensor de Velocidade do Vento.'''
+    def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
+        ...
+
+class SensorNivelEnergia(Sensores):
+    '''Sensor de Nivel de Energia.'''
+    def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
+        ...        
