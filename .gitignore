@@ -1,0 +1,28 @@
+# Python 
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Distribuição / build 
+dist/
+build/
+*.egg-info/
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Relatório (não versionar rascunhos)
+docs/relatorio_rascunho.*
+
+#Variáveis de ambiente 
+.env
