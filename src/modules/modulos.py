@@ -5,7 +5,7 @@ class Missao_espacial:
     Parte central da missão. Agrega todos os módulos e sistemas.
     '''
     def __init__(self):
-        #Dic pra garantintir acesso O(1) em vez de lista que usava for
+        #Dic(Tabela Hash) pra garantintir acesso O(1) em vez de lista que usava for psts acessar.
         self.modulos = {}
         #Pilha de eventos, um entra em cima do outro no log  (LIFO)
         self.log_eventos_criticos = []
@@ -33,7 +33,7 @@ class Missao_espacial:
 #-----------------Modulos-----------------#
 class Modulo:
     '''
-    Representação de um módulo físico da missão
+    Representação de um módulo físico da missão,
     '''
     def __init__(self,id_nome: str, tipo: str, funcao: str, criticidade: int, consumo: int):
         '''
@@ -51,10 +51,22 @@ class Modulo:
         self.criticidade = criticidade
         self.consumo = consumo
         self.status = True #Modulo inicia ligado
+        #Chave é o nome e valor o proprio sistema.
+        self.sistemas = {}
+        self.sensores = {}
 
-    def __repr__(self):
-        estado = "Ligado" if self.status else "Desligado"
-        return f"Módulo: {self.id_nome} ({self.funcao}) [{estado}] Criticidade: {self.criticidade}"
+    def adicionar_sistema(self, sistema):
+        '''Junta um sistema a esse módulo. '''
+        self.sistemas[sistema.nome] = sistema
+
+    def adicionar_sensor(self, sensor):
+        '''Junta um sensor ao módulo'''
+        self.sensores[sensor.nome] = sensor
+
+    def alterar_status(self, nove_status: bool):
+        '''Visualizar status'''
+        self.status = nove_status   
+
 
 #-----------------Sistemas-----------------#
 class Sistema:
