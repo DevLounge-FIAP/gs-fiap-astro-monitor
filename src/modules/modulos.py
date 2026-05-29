@@ -49,6 +49,23 @@ class Missao_espacial:
         else:
             print(f"Erro: Módulo com ID '{id_modulo} não encontrado na missão")
 
+    def calcular_e_atualizar_demanda_global(self):
+        '''
+        Varre todos os módulos da missão. Se o módulo estiver com status=True,
+        soma o seu consumo. Ao final, atualiza o SensorDemandaGlobal com o valor exato.
+        '''
+        demanda_total = 0.0
+
+        for modulo in self.modulos.values():
+            if modulo.status:
+                demanda_total += modulo.consumo
+
+        modulo_energia = self.modulos.get('ENE-01')
+        if modulo_energia:
+            sensor_demanda = modulo_energia.sensores.get('Sensor_Demanda_Total')
+            if sensor_demanda:
+                sensor_demanda.registrar_leitura(demanda_total)
+
     def gerar_matriz_telemetria(self) -> list:
         '''
         Gera uma matriz sem numpy, logo é uma lista de listas, junta todos os dados temporais coletados pelos sensores.
@@ -65,6 +82,7 @@ class Missao_espacial:
         sistema_solar = modulo_energia.sistemas.get('Solar-01')
         sistema_eolico = modulo_energia.sistemas.get('Eolico-01')
         bateria = modulo_energia.sistemas.get('Bateria-01')
+        sensor_demanda = modulo_energia.sensores.get('Sensor_Demanda_Total')
 
         if not (sistema_solar and sistema_eolico and bateria):
             print("Sistemas de energia insuficientes para gerar a matriz de previsão!!!")
@@ -76,10 +94,9 @@ class Missao_espacial:
             linha = []
 
             geracao_total = sistema_solar.historico_geracao[i] + sistema_eolico.historico_geracao[i]
-            consumo_total = sistema_solar.historico_consumo[i] + sistema_eolico.historico_consumo[i]
             linha.append(i) # Ciclo
             linha.append(geracao_total) # Geração_Total_W
-            linha.append(consumo_total) # Consumo_Total_W
+            linha.append(sensor_demanda.historico_leituras[i]) # Consumo_Total_W
             linha.append(bateria.historico_geracao[i]) # Nível_Bateria_%
 
             matriz.append(linha)
@@ -182,7 +199,7 @@ class SistemaArmazenamentoEnergetico(Sistema):
 #-----------------Sensores-----------------#
 class Sensores: 
     '''Classe para representar os sensores da missão.'''
-    def __init__(self, nome: str, tipo: str, funcao: str, unidade: str):
+    def __init__(self, nome: str, tipo: str, funcao: str, unidade: str, leitura_inicial = 0.0):
         '''
         Args:
             nome: Nome do sensor.
@@ -194,8 +211,9 @@ class Sensores:
         self.nome = nome
         self.tipo = tipo
         self.funcao = funcao
-        self.historico_leituras = []
+        self.historico_leituras = [leitura_inicial]
         self.unidade = unidade
+
 
     def registrar_leitura(self, nova_leitura):
         self.historico_leituras.append(nova_leitura)    
@@ -208,105 +226,129 @@ class Sensores:
         '''
         return self.historico_leituras[-1]
 
+class SensorDemandaGlobal(Sensores):
+    '''
+    Mede a carga energética total da Missão.
+    '''
+    def __init__(self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
+        super().__init__(
+            nome = nome,
+            tipo = "Sensor de Demanda Energética",
+            funcao = funcao,
+            unidade = unidade,
+            leitura_inicial = leitura_inicial
+         )
+
 class SensorIrradiacao(Sensores):
     
-    def __init__(self, nome: str, funcao: str, unidade: str):
+    def __init__(self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
         super().__init__(
             nome=nome,
             tipo="Sensor de Irradiação Solar",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         )      
 
 class SensorVelocidadeVento(Sensores):
     
-    def __init__(self, nome: str, funcao: str, unidade: str):
+    def __init__(self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
         super().__init__(
             nome=nome,
             tipo="Sensor de Velocidade do Vento",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         ) 
 
 class SensorNivelEnergia(Sensores):
     """*Criação dos Sensores do Módulo Energético*"""
-    def __init__(self, nome: str, funcao: str, unidade: str):
+    def __init__(self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
         super().__init__(
             nome=nome,
             tipo="Sensor da Bateria",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         ) 
 
 
 class SensorO2(Sensores):
     
-   def __init__(self, nome: str, funcao: str, unidade: str):  
+   def __init__(self, nome: str, funcao: str, unidade: str, leitura_inicial: float):  
         super().__init__(
             nome=nome,
             tipo="Sensor do Oxigênio",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         ) 
 
 class SensorTemperaturaInterna(Sensores):
     """*Criação dos Sensores do Módulo Suporte a Vida*"""
-    def __init__(self, nome: str, funcao: str,  unidade: str): 
+    def __init__(self, nome: str, funcao: str,  unidade: str, leitura_inicial: float): 
         super().__init__(
             nome=nome,
             tipo="Sensor da Temperatura Interna",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         ) 
 
 
 class SensorQualidadeSinal(Sensores):
     """*Criação dos Sensores do Módulo Comunicação*"""
-    def __init__ (self, nome: str, funcao: str, unidade: str):
+    def __init__ (self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
         super().__init__(
             nome=nome,
             tipo="Sensor da Qualidade do Sinal",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         ) 
 
 class SensorIntegridadeEstrutural(Sensores):
     """*Criação dos Sensores do Módulo Habitat*"""
-    def __init__ (self, nome: str, funcao: str, unidade: str, integridadeEstrutural: float):       
+    def __init__ (self, nome: str, funcao: str, unidade: str, integridadeEstrutural: float, leitura_inicial: float):       
        super().__init__(
             nome=nome,
             tipo="Sensor da Integridade Estrutural",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         )
+       self.integridadeEstrutural = integridadeEstrutural
        
 class SensorTemperaturaExterna(Sensores):
 
-    def __init__ (self, nome: str, funcao: str, unidade: str):
+    def __init__ (self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
        super().__init__(
             nome=nome,
             tipo="Sensor da Temperatura Externa",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         ) 
 class SensorRadicao(Sensores):
     """*Criação dos Sensores do Módulo Laboratório *"""
-    def __init__ (self, nome: str, funcao: str, unidade: str):
+    def __init__ (self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
        super().__init__(
             nome=nome,
             tipo="Sensor da Radiação",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         )  
 
 class SensorHelio3(Sensores):
     """*Crição dos Sensores do Módulo Armazenamento*"""
-    def __init__ (self, nome: str, funcao: str, unidade: str):
+    def __init__ (self, nome: str, funcao: str, unidade: str, leitura_inicial: float):
        super().__init__(
             nome=nome,
             tipo="Sensor do Hélio 3",
             funcao=funcao,
             unidade=unidade,
+            leitura_inicial = leitura_inicial
         )
 
 
