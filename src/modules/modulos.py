@@ -169,32 +169,129 @@ class SistemaArmazenamentoEnergetico(Sistema):
 #-----------------Sensores-----------------#
 class Sensores: 
     '''Classe para representar os sensores da missão.'''
-    def __init__(self, nome: str, tipo: str, funcao: str, leitura: str, unidade: str, integridadeEstrutural: float = 100.0):
+    def __init__(self, nome: str, tipo: str, funcao: str, unidade: str):
         '''
         Args:
             nome: Nome do sensor.
             tipo: Categoria do sensor (Sensor de Temperatura, Sensor de Pressão, Sensor de Umidade, Sensor de Radiação, Sensor de Movimento)
             funcao: Descrição da função do sensor.
-            leitura: Valor atual da leitura do sensor.
+
             unidade: Unidade da leitura (°C, hPa, %, mSv/h, m/s²)
         '''
         self.nome = nome
         self.tipo = tipo
         self.funcao = funcao
-        self.leitura = leitura
+        self.leitura = []
         self.unidade = unidade
-        
+
+    def registrar_leitura(self,valor):
+        self.leitura.append(valor)      
+
 class SensorIrradiacao(Sensores):
-    '''Sensor de Irradiacao.'''
-    def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
-        ...        
+    
+    def __init__(self, nome: str, funcao: str, unidade: str):
+        super().__init__(
+            nome=nome,
+            tipo="Sensor de Irradiação Solar",
+            funcao=funcao,
+            unidade=unidade,
+        )      
 
 class SensorVelocidadeVento(Sensores):
-    '''Sensor de Velocidade do Vento.'''
-    def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
-        ...
+    
+    def __init__(self, nome: str, funcao: str, unidade: str):
+        super().__init__(
+            nome=nome,
+            tipo="Sensor de Velocidade do Vento",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
 
 class SensorNivelEnergia(Sensores):
-    '''Sensor de Nivel de Energia.'''
-    def __init__(self, nome: str, funcao: str, leitura: str, unidade: str):
-        ...
+   
+    def __init__(self, nome: str, funcao: str, unidade: str):
+        super().__init__(
+            nome=nome,
+            tipo="Sensor da Bateria",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
+"""*Criação dos Sensores do Módulo Energético*"""
+
+class SensorO2(Sensores):
+    
+   def __init__(self, nome: str, funcao: str, unidade: str):  
+        super().__init__(
+            nome=nome,
+            tipo="Sensor do Oxigênio",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
+
+class SensorTemperaturaInterna(Sensores):
+    
+    def __init__(self, nome: str, funcao: str,  unidade: str): 
+        super().__init__(
+            nome=nome,
+            tipo="Sensor da Temperatura Interna",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
+"""*Criação dos Sensores do Módulo Suporte a Vida*"""
+
+class SensorQualidadeSinal(Sensores):
+    
+    def __init__ (self, nome: str, funcao: str, unidade: str):
+        super().__init__(
+            nome=nome,
+            tipo="Sensor da Qualidade do Sinal",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
+"""*Criação dos Sensores do Módulo Comunicação*"""
+
+class SensorIntegridadeEstrutural(Sensores):
+    
+    def __init__ (self, nome: str, funcao: str, unidade: str,integridadeEstrutural: float = 100.0):       
+       super().__init__(
+            nome=nome,
+            tipo="Sensor da Integridade Estrutural",
+            funcao=funcao,
+            unidade=unidade,
+        )  
+       self.integridadeEstrutural = integridadeEstrutural
+       
+"""*Criação dos Sensores do Módulo Habitat*"""
+
+class SensorTemperaturaExterna(Sensores):
+
+    def __init__ (self, nome: str, funcao: str, unidade: str):
+       super().__init__(
+            nome=nome,
+            tipo="Sensor da Temperatura Externa",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
+class SensorRadicao(Sensores):
+
+    def __init__ (self, nome: str, funcao: str, unidade: str):
+       super().__init__(
+            nome=nome,
+            tipo="Sensor da Radiação",
+            funcao=funcao,
+            unidade=unidade,
+        )  
+
+"""*Criação dos Sensores do Módulo Laboratório *"""
+
+class SensorHelio3(Sensores):
+
+    def __init__ (self, nome: str, funcao: str, unidade: str):
+       super().__init__(
+            nome=nome,
+            tipo="Sensor do Hélio 3",
+            funcao=funcao,
+            unidade=unidade,
+        ) 
+
+"""*Crição dos Sensores do Módulo Armazenamento*"""
