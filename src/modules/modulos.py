@@ -309,7 +309,7 @@ class SensorQualidadeSinal(Sensores):
 
 class SensorIntegridadeEstrutural(Sensores):
     """*Criação dos Sensores do Módulo Habitat*"""
-    def __init__ (self, nome: str, funcao: str, unidade: str, integridadeEstrutural: float, leitura_inicial: float):       
+    def __init__ (self, nome: str, funcao: str, unidade: str, leitura_inicial: float):       
        super().__init__(
             nome=nome,
             tipo="Sensor da Integridade Estrutural",
@@ -317,7 +317,6 @@ class SensorIntegridadeEstrutural(Sensores):
             unidade=unidade,
             leitura_inicial = leitura_inicial
         )
-       self.integridadeEstrutural = integridadeEstrutural
        
 class SensorTemperaturaExterna(Sensores):
 
