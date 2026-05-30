@@ -183,12 +183,12 @@ class Sistema:
 
 class SistemaGeracaoSolar(Sistema):
     '''Painéis Solares.'''
-    def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: int):
+    def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: float):
         super().__init__(nome, capacidade_max_geracao, geracao_atual,consumo = 0, capacidade_max_armazenamento = 0)
 
 class SistemaGeracaoEolica(Sistema):
     '''Turbinas Eolicas.'''
-    def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: int):
+    def __init__(self, nome: str, capacidade_max_geracao: int, geracao_atual: float):
         super().__init__(nome, capacidade_max_geracao, geracao_atual,consumo = 0, capacidade_max_armazenamento = 0)
 
 class SistemaArmazenamentoEnergetico(Sistema):

@@ -1,81 +1,97 @@
 import csv
 import random
+import math
 from datetime import datetime, timedelta
 
-# Sistemas (3)
-sistemas = [
-    {"nome": "Solar Farm 1", "classe": "SistemaGeracaoSolar"},
-    {"nome": "Turbina Eolica 1", "classe": "SistemaGeracaoEolica"},
-    {"nome": "Banco Baterias 1", "classe": "SistemaArmazenamentoEnergetico"},
-]
+def gerar_dados_simulados():
+    dados = []
+    timestamp_base = datetime(2026, 1, 1, 0, 0)
+    
+    # Variáveis de Estado Inicial (vão sofrendo alterações ao longo do tempo)
+    nivel_bateria = 100.0
+    integridade_estrutural = 100.0
+    o2_atual = 21.0
+    temp_int_atual = 22.0
+    
+    total_ciclos = 500
 
-# Sensores (10)
-sensores = [
-    {"nome": "Irradiacao_Sensor", "tipo": "Sensor de Irradiação Solar", "classe": "SensorIrradiacao", "unidade": "W/m²", "faixa": (0, 1200)},
-    {"nome": "VelocidadeVento_Sensor", "tipo": "Sensor de Velocidade do Vento", "classe": "SensorVelocidadeVento", "unidade": "m/s", "faixa": (0, 30)},
-    {"nome": "NivelEnergia_Sensor", "tipo": "Sensor da Bateria", "classe": "SensorNivelEnergia", "unidade": "%", "faixa": (0, 100)},
-    {"nome": "O2_Sensor", "tipo": "Sensor do Oxigênio", "classe": "SensorO2", "unidade": "%", "faixa": (15, 25)},
-    {"nome": "TemperaturaInterna_Sensor", "tipo": "Sensor da Temperatura Interna", "classe": "SensorTemperaturaInterna", "unidade": "°C", "faixa": (18, 28)},
-    {"nome": "QualidadeSinal_Sensor", "tipo": "Sensor da Qualidade do Sinal", "classe": "SensorQualidadeSinal", "unidade": "%", "faixa": (0, 100)},
-    {"nome": "IntegridadeEstrutural_Sensor", "tipo": "Sensor da Integridade Estrutural", "classe": "SensorIntegridadeEstrutural", "unidade": "%", "faixa": (80, 100)},
-    {"nome": "TemperaturaExterna_Sensor", "tipo": "Sensor da Temperatura Externa", "classe": "SensorTemperaturaExterna", "unidade": "°C", "faixa": (-50, 50)},
-    {"nome": "Radiacao_Sensor", "tipo": "Sensor da Radiação", "classe": "SensorRadicao", "unidade": "mSv/h", "faixa": (0, 500)},
-    {"nome": "Helio3_Sensor", "tipo": "Sensor do Hélio 3", "classe": "SensorHelio3", "unidade": "ppm", "faixa": (0, 1000)},
-]
+    print("Iniciando geração de dados (Wide Format)...")
 
-linhas_por_combinacao = 500
-dados = []
-timestamp_base = datetime(2025, 1, 1, 0, 0, 0)
+    for i in range(total_ciclos):
+        timestamp_atual = (timestamp_base + timedelta(minutes=i*5)).strftime("%Y-%m-%d %H:%M:%S")
+        
+        # LÓGICA DE EVENTOS DA MISSÃO
+        # Simulando uma anomalia (Tempestade de Areia) entre o ciclo 250 e 300
+        em_tempestade = 250 <= i <= 300
+        # Regra da tempestade
+        # --- SIMULAÇÃO DE ENERGIA ---
+        if em_tempestade:
+            geracao_solar = random.uniform(0, 50) # Painéis cobertos de poeira
+            geracao_eolica = random.uniform(2500, 3500) # Ventos fortes
+            demanda_global = random.uniform(2500, 3200) # Base gasta mais energia para aquecimento
+        else:
+            # Ciclo diurno normal usando Seno (Sobe de dia, zera de noite)
+            hora_dia = (i * 5) % 1440 # Minutos em um dia
+            fator_sol = max(0, math.sin(math.pi * hora_dia / 720)) 
+            geracao_solar = fator_sol * random.uniform(4800, 5200)
+            
+            geracao_eolica = random.uniform(500, 2000) # Vento normal
+            demanda_global = random.uniform(1500, 2200) # Consumo normal
 
-print("Gerando CSV com 10 sensores × 3 sistemas × 500 linhas...")
+        #SIMULAÇÃO DA BATERIA
+        # Se gera mais que consome, carrega. Se consome mais, descarrega.
+        saldo_energia = (geracao_solar + geracao_eolica) - demanda_global
+        
+        # Considerando que 1% de bateria equivale a 100W de saldo num ciclo de 5 min (valor arbitrário para simulação)
+        impacto_bateria = saldo_energia / 100.0 
+        nivel_bateria += impacto_bateria
+        
+        # Travas de segurança da física (Bateria não passa de 100 nem cai abaixo de 0)
+        # Aqui é preciosismo da minha parte (Aelton)
+        nivel_bateria = max(0.0, min(100.0, nivel_bateria))
 
-for sistema in sistemas:
-    for sensor in sensores:
-        print(f"Processando: {sensor['nome']} → {sistema['nome']}")
-        ultimo_valor = None
-        for i in range(linhas_por_combinacao):
-            # Irradiação solar
-            if sensor["tipo"] == "Sensor de Irradiação Solar":
-                hora = (timestamp_base + timedelta(minutes=i*5)).hour
-                fator = max(0, 1 - abs(hora - 12) / 12)
-                valor = random.uniform(0, sensor["faixa"][1] * fator)
-            # Bateria
-            elif sensor["tipo"] == "Sensor da Bateria":
-                if ultimo_valor is None:
-                    valor = random.uniform(40, 90)
-                else:
-                    delta = random.uniform(-5, 5)
-                    valor = max(0, min(100, ultimo_valor + delta))
-            # Demais sensores
-            else:
-                if ultimo_valor is None:
-                    valor = random.uniform(sensor["faixa"][0], sensor["faixa"][1])
-                else:
-                    variacao = random.uniform(-sensor["faixa"][1]*0.02, sensor["faixa"][1]*0.02)
-                    valor = max(sensor["faixa"][0], min(sensor["faixa"][1], ultimo_valor + variacao))
-            ultimo_valor = valor
+        # SIMULAÇÃO DOS SENSORES DE SUPORTE À VIDA E ESTRUTURA
+        if em_tempestade:
+            temp_ext = random.uniform(-100, -80)
+            radiacao = random.uniform(2.0, 5.0) # Radiação sobe
+            integridade_estrutural -= random.uniform(0.01, 0.05) # Estrutura sofre dano leve
+            temp_int_atual -= random.uniform(0.01, 0.1) # Temperatura interna começa a cair levemente
+        else:
+            temp_ext = random.uniform(-60, -30)
+            radiacao = random.uniform(0.1, 0.5)
+            # Sistema tenta estabilizar a temperatura interna em 22.0
+            temp_int_atual += (22.0 - temp_int_atual) * 0.1 + random.uniform(-0.1, 0.1)
 
-            dados.append({
-                "timestamp": (timestamp_base + timedelta(minutes=i*5)).strftime("%Y-%m-%d %H:%M:%S"),
-                "sensor_nome": sensor["nome"],
-                "sensor_tipo": sensor["tipo"],
-                "sensor_classe": sensor["classe"],
-                "sistema_nome": sistema["nome"],
-                "sistema_classe": sistema["classe"],
-                "valor_leitura": round(valor, 2),
-                "unidade": sensor["unidade"]
-            })
+        # O2 varia levemente com o tempo (aplicando um random com path)
+        o2_atual += random.uniform(-0.05, 0.05)
+        o2_atual = max(18.0, min(23.0, o2_atual))
 
-# Salvar CSV
-arquivo = "dados.csv"
-with open(arquivo, 'w', newline='', encoding='utf-8') as f:
-    campos = ["timestamp", "sensor_nome", "sensor_tipo", "sensor_classe",
-              "sistema_nome", "sistema_classe", "valor_leitura", "unidade"]
-    writer = csv.DictWriter(f, fieldnames=campos)
-    writer.writeheader()
-    writer.writerows(dados)
+        linha = {
+            "Timestamp": timestamp_atual,
+            "Geracao_Solar_W": round(geracao_solar, 2),
+            "Geracao_Eolica_W": round(geracao_eolica, 2),
+            "Demanda_Global_W": round(demanda_global, 2),
+            "Nivel_Bateria_Pct": round(nivel_bateria, 2),
+            "O2_Pct": round(o2_atual, 2),
+            "Temp_Int_C": round(temp_int_atual, 2),
+            "Temp_Ext_C": round(temp_ext, 2),
+            "Radiacao_mSv": round(radiacao, 2),
+            "Integridade_Pct": round(integridade_estrutural, 2)
+        }
+        
+        dados.append(linha)
 
-print(f"\n✅ Arquivo '{arquivo}' gerado com sucesso!")
-print(f"📊 Total de linhas: {len(dados)}")
-print(f"🔢 Combinações: {len(sistemas)} sistemas × {len(sensores)} sensores = {len(sistemas)*len(sensores)}")
-print(f"🎯 Linhas por combinação: {linhas_por_combinacao}")
+    # SALVANDO O ARQUIVO CSV
+    arquivo = "data/dados.csv"
+    with open(arquivo, 'w', newline='', encoding='utf-8') as f:
+        # As chaves do dicionário formam o cabeçalho perfeito
+        campos = dados[0].keys()
+        writer = csv.DictWriter(f, fieldnames=campos)
+        writer.writeheader()
+        writer.writerows(dados)
+
+    print(f"✅ Arquivo '{arquivo}' gerado com sucesso no formato consolidado!")
+    print(f"Foram gerados {total_ciclos} ciclos temporais sincronizados.")
+
+if __name__ == "__main__":
+    gerar_dados_simulados()

@@ -14,7 +14,7 @@ Pop no final	        O(1)                        O(1)
 Pop no início	        O(n)	                    O(1)
 Acesso por índice	    O(1)	        O(1) nas extremidades, O(n) no meio
 '''
-
+# Parte do Aelton(Eu) tambem, aqui é para os alertas gerados respeitarem uma lógica e armazenamento.
 class CentralDeAlertas:
     '''
     Gerenciador dos alertas da missão
@@ -30,7 +30,7 @@ class CentralDeAlertas:
         Tem que chamar esse metodo SEMPRE que um IF achar problema.
         '''
         alerta = {
-            'severidade': severidade.upper, #Exemplo: 'NORMAL', 'ALERTA', 'CRITICO'. #Definir isso nas regras
+            'severidade': severidade.upper(), #Exemplo: 'NORMAL', 'ALERTA', 'CRITICO'. #Definir isso nas regras
             'mensagem': mensagem, #Definir isso nas regras
             'recomendacao': recomendacao #Definir isso nas regras
         }
