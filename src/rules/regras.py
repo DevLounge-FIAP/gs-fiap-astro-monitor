@@ -85,7 +85,7 @@ class MotorDeRegras:
 
             # ----- Regra 5: Módulos estáveis -----
             # Verifica se todos os parâmetros estão dentro dos níveis normais
-            if sistema_bateria > 80 and (sistema_solar + sistema_eolica) > sensor_demanda and sensor_o2 > 21 and sensor_temp_int > 20:
+            if sistema_bateria > 80 and (sistema_solar + sistema_eolica) > sensor_demanda and sensor_o2 > 18 and sensor_temp_int > 20:
                 self.central_alertas.enfileirar_alerta('NORMAL','Módulos estáveis','Sistemas e sensores indicam normalidades')
 
         pass 
