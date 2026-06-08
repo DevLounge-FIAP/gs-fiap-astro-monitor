@@ -88,6 +88,10 @@ class MotorDeRegras:
             if sistema_bateria > 80 and (sistema_solar + sistema_eolica) > sensor_demanda and sensor_o2 > 18 and sensor_temp_int > 20:
                 self.central_alertas.enfileirar_alerta('NORMAL','Módulos estáveis','Sistemas e sensores indicam normalidades')
 
+            # ----- Regra 6: Inconsistência Proposital -----
+            if sensor_temp_int > 1000 or sistema_bateria < 0:
+                self.central_alertas.enfileirar_alerta('CRITICO','Falha de sensor detectada','Reiniciar sensores do módulo')
+
         pass 
 
     def executar_previsao_tendencia(self):

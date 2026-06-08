@@ -36,7 +36,6 @@ class CentralDeAlertas:
         }
 
         self.fila_de_alertas.append(alerta)
-        print(f"[NOVO ALERTA ENFILEIRADO] Nível: {severidade.upper()}, Mensagem:{mensagem}")
 
     def processar_proximo_alerta(self):
         '''
