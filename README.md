@@ -37,6 +37,7 @@
 
 **Como executar**
 - Pré-requisito: ter Python 3 instalado e o ambiente virtual opcionalmente ativado.
+- O sistema principal é interativo e abre um menu de opções para executar as rotas disponíveis.
 - Gerar dados de teste (opcional):
 
 ```bash
@@ -44,12 +45,19 @@ python data/gerar_dados.py
 ```
 
 - Executar o orquestrador principal:
+- Executar o orquestrador principal:
 
 ```bash
 python src/sistema.py
 ```
 
-O comando acima inicia a ingestão do arquivo `data/dados.csv`, popula estruturas em memória, e exibe uma amostra da matriz gerada.
+Ao iniciar, o programa mostra o menu principal. A partir dele, você pode rodar simulador de cenários, ingestão completa do CSV, análise energética, previsão da bateria e as validações mínimas do projeto. As rotas de telemetria e análise populam a missão em memória, processam as regras e exibem os resultados no console.
+
+- Executar as validações mínimas pelo menu:
+
+	- escolha a opção `5` no menu principal
+
+O arquivo de validações fica separado da aplicação principal em [src/testes_minimos.py](src/testes_minimos.py).
 
 **Exemplo de entrada e saída do sistema**
 - Exemplo de linha (entrada) no CSV (`data/dados.csv`):
@@ -79,9 +87,14 @@ O comando acima inicia a ingestão do arquivo `data/dados.csv`, popula estrutura
 - Verificar turbinas eólicas (sem produção).
 - Checar/reparar integridade estrutural (níveis críticos).
 - Verificar módulo de suporte à vida imediatamente (O2/temperatura críticas).
+- Emitir alerta preventivo quando a previsão de bateria indicar colapso próximo.
 
 **Link do vídeo no YouTube**
 - Demonstração / apresentação (substitua pelo link final): Colocar o link do vídeo aqui depois.
+
+**Observação sobre o fluxo interno**
+- A missão mantém um dicionário de módulos, uma fila de alertas e uma pilha de eventos críticos.
+- A pilha é usada como histórico interno dos eventos críticos gerados pelas regras.
 
 **Conclusões e aprendizados**
 - O projeto integra três frentes educacionais importantes: engenharia de software orientada a objetos, lógica de sistemas (motor de regras) e técnicas básicas de análise preditiva.

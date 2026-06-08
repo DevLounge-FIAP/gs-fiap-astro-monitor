@@ -11,11 +11,16 @@ class MotorDeRegras:
         self.missao = missao
         self.central_alertas = central_alertas
 
+    def _registrar_evento_critico(self, mensagem: str, recomendacao: str):
+        self.missao.registrar_evento_critico(f"[CRITICO] {mensagem} | {recomendacao}")
+
     def analisar_status_geral(self):
 
         #Adicionando os módulos, sistemas e sensores 
         mod_energia = self.missao.modulos.get('ENE-01')
         mod_suporte = self.missao.modulos.get('SUP-01')
+
+        status_critico = False
 
         if mod_energia and mod_suporte:
             sistema_solar = mod_energia.sistemas.get('Solar-01').obter_geracao_atual()
@@ -34,10 +39,13 @@ class MotorDeRegras:
             # -- Energia insuficiente --
             if sistema_bateria < 30 and (sistema_solar + sistema_eolica) < sensor_demanda: 
                 self.central_alertas.enfileirar_alerta('CRITICO', 'Energia insuficiente', 'Desligar módulos não essenciais')
+                self._registrar_evento_critico('Energia insuficiente', 'Desligar módulos não essenciais')
+                status_critico = True
 
             # -- Risco de energia --
             elif sistema_bateria < 50 and (sistema_solar + sistema_eolica) < sensor_demanda: 
                 self.central_alertas.enfileirar_alerta('ALERTA', 'Risco de energia ser insuficiente', 'Desligar módulos de baixa criticade')
+                status_critico = True
 
             # ----- Regra 2 : Produção e armazenamento de energia -----
             # Verifica a produção solar cruzando com a radiação, a produção eólica e o nível da bateria, emitindo alertas conforme a criticidade de cada um
@@ -45,22 +53,28 @@ class MotorDeRegras:
             # -- Paineis solares comprometidos --
             if sensor_radiacao > 1 and sistema_solar < 3000:
                 self.central_alertas.enfileirar_alerta('CRITICO','Placas solares comprometidas','Verificar estado das placas solares')
+                self._registrar_evento_critico('Placas solares comprometidas', 'Verificar estado das placas solares')
+                status_critico = True
 
             # -- Paineis solares possivelmente comprometidos --
             elif sensor_radiacao > 1 and sistema_solar > 3000 and sistema_solar < 4000:
                 self.central_alertas.enfileirar_alerta('ALERTA', 'Discrepância na produção de energia solar','Verificar estado das placas solares')
+                status_critico = True
 
             # -- Sem produção de energia eólica -- 
             if not sistema_eolica: 
                 self.central_alertas.enfileirar_alerta('ALERTA', 'Sem produção de energia eólica','Verifique integridade das turbinas eólicas') 
+                status_critico = True
 
             # -- Armazenamento da bateria em baixo nível --
             if sistema_bateria < 50: 
                 self.central_alertas.enfileirar_alerta('ALERTA','Bateria com baixo nível de energia', 'Considere economizar energia')
+                status_critico = True
 
             # -- Armazenamento de energia da bateria zerado --
             if not sistema_bateria:
                 self.central_alertas.enfileirar_alerta('ALERTA','Bateria zerada','Economize energia')
+                status_critico = True
 
 
             # ----- Regra 3: Suporte à vida -----
@@ -68,8 +82,11 @@ class MotorDeRegras:
 
             if sensor_o2 < 19 and sensor_temp_int < 15:
                 self.central_alertas.enfileirar_alerta('CRITICO','Risco a vida', 'Verificar módulo de suporte à vida urgente')
+                self._registrar_evento_critico('Risco a vida', 'Verificar módulo de suporte à vida urgente')
+                status_critico = True
             elif sensor_o2 < 19 or sensor_temp_int < 15:
                 self.central_alertas.enfileirar_alerta('ALERTA','Risco a vida', 'Verificar módulo de suporte à vida')
+                status_critico = True
             
 
             # ----- Regra 4: Integridade -----
@@ -77,15 +94,20 @@ class MotorDeRegras:
 
             if not sensor_integridade:
                 self.central_alertas.enfileirar_alerta('CRITICO','Integridade zerada','Módulo destruído') 
+                self._registrar_evento_critico('Integridade zerada', 'Módulo destruído')
+                status_critico = True
             elif sensor_integridade < 70 and sensor_integridade > 0:
                 self.central_alertas.enfileirar_alerta('CRITICO','Integridade extremamente comprometida','Enviar reparo')
+                self._registrar_evento_critico('Integridade extremamente comprometida', 'Enviar reparo')
+                status_critico = True
             elif sensor_integridade < 90 and sensor_integridade > 0: 
                 self.central_alertas.enfileirar_alerta('ALERTA', 'Integridade afetada', 'Verificar integridade dos módulos')
+                status_critico = True
             
 
             # ----- Regra 5: Módulos estáveis -----
             # Verifica se todos os parâmetros estão dentro dos níveis normais
-            if sistema_bateria > 80 and (sistema_solar + sistema_eolica) > sensor_demanda and sensor_o2 > 18 and sensor_temp_int > 20:
+            if not status_critico and sistema_bateria > 80 and (sistema_solar + sistema_eolica) > sensor_demanda and sensor_o2 > 18 and sensor_temp_int > 20:
                 self.central_alertas.enfileirar_alerta('NORMAL','Módulos estáveis','Sistemas e sensores indicam normalidades')
 
             # ----- Regra 6: Inconsistência Proposital -----

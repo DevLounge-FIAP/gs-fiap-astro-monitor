@@ -1,5 +1,6 @@
 import sys
 import os
+from typing import Optional
 
 # Adiciona o caminho da pasta src para conseguir importar os modulos corretamente
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -22,8 +23,8 @@ class ModeloPrevisaoBateria:
         self.missao = missao
 
         # Coeficientes da reta (ficam None ate o modelo ser treinado)
-        self.inclinacao_m = None
-        self.interceptacao_b = None
+        self.inclinacao_m: Optional[float] = None
+        self.interceptacao_b: Optional[float] = None
 
         # Guarda os dados que foram usados no treino
         self.ciclos_usados = 0
@@ -79,7 +80,11 @@ class ModeloPrevisaoBateria:
             print("[PREVISAO] Modelo ainda nao foi treinado. Chame treinar() primeiro.")
             return -1.0
 
-        nivel_previsto = self.inclinacao_m * ciclo_futuro + self.interceptacao_b
+        inclinacao_m = self.inclinacao_m
+        interceptacao_b = self.interceptacao_b
+        assert interceptacao_b is not None
+
+        nivel_previsto = inclinacao_m * ciclo_futuro + interceptacao_b
         return nivel_previsto
 
     def prever_ciclo_colapso(self, limite_critico: float = 20.0) -> int:
@@ -97,19 +102,23 @@ class ModeloPrevisaoBateria:
             return -1
 
         # Se a bateria esta subindo ou estavel, nao vai colapsar
-        if self.inclinacao_m >= 0:
+        inclinacao_m = self.inclinacao_m
+        interceptacao_b = self.interceptacao_b
+        assert interceptacao_b is not None
+
+        if inclinacao_m >= 0:
             print("[PREVISAO] Tendencia da bateria e estavel ou crescente. Sem risco de colapso detectado.")
             return -1
 
         # Descobre o ciclo onde a bateria atinge o limite
-        ciclo_critico = (limite_critico - self.interceptacao_b) / self.inclinacao_m
+        ciclo_critico = (limite_critico - interceptacao_b) / inclinacao_m
         ciclo_critico = int(ciclo_critico)
 
         # So faz sentido se for no futuro
         ciclos_ate_o_fim = ciclo_critico - self.ciclos_usados
         if ciclos_ate_o_fim < 0:
             print(f"[PREVISAO] ATENCAO: A bateria JA deveria ter atingido {limite_critico}% ha {abs(ciclos_ate_o_fim)} ciclos atras!")
-            print(f"[PREVISAO] Nivel atual provavelmente esta critico. Verifique os dados ao vivo.")
+            print("[PREVISAO] Nivel atual provavelmente esta critico. Verifique os dados ao vivo.")
         else:
             print(f"[PREVISAO] A bateria deve atingir {limite_critico}% no ciclo {ciclo_critico}.")
             print(f"[PREVISAO] Faltam aproximadamente {ciclos_ate_o_fim} ciclos para o nivel critico.")
@@ -121,6 +130,18 @@ class ModeloPrevisaoBateria:
         Metodo que o Bruno pode chamar no menu para mostrar o resultado
         completo da analise preditiva pro usuario.
         '''
+        resumo = {
+            'sucesso': False,
+            'ciclos_analisados': 0,
+            'inclinacao_m': None,
+            'interceptacao_b': None,
+            'ciclo_colapso': -1,
+            'ciclos_restantes': None,
+            'alerta_preventivo': False,
+            'alerta_critico_previsao': False,
+            'limite_critico': limite_critico,
+        }
+
         print("\n" + "=" * 55)
         print("       ANALISE PREDITIVA - NIVEL DA BATERIA")
         print("=" * 55)
@@ -130,22 +151,32 @@ class ModeloPrevisaoBateria:
         if not sucesso:
             print("[PREVISAO] Nao foi possivel gerar previsao.")
             print("=" * 55)
-            return
+            return resumo
+
+        resumo['sucesso'] = True
+        resumo['ciclos_analisados'] = self.ciclos_usados
+        resumo['inclinacao_m'] = self.inclinacao_m
+        resumo['interceptacao_b'] = self.interceptacao_b
+
+        inclinacao_m = self.inclinacao_m
+        interceptacao_b = self.interceptacao_b
+        assert inclinacao_m is not None
+        assert interceptacao_b is not None
 
         # Mostra a tendencia
         print(f"\n Ciclos analisados : {self.ciclos_usados}")
-        print(f" Inclinacao (m)    : {self.inclinacao_m:.5f} por ciclo")
-        print(f" Interceptacao (b) : {self.interceptacao_b:.2f}%")
+        print(f" Inclinacao (m)    : {inclinacao_m:.5f} por ciclo")
+        print(f" Interceptacao (b) : {interceptacao_b:.2f}%")
 
-        if self.inclinacao_m < 0:
-            print(f"\n TENDENCIA: QUEDA ({self.inclinacao_m:.5f}% por ciclo)")
-        elif self.inclinacao_m > 0:
-            print(f"\n TENDENCIA: SUBIDA (+{self.inclinacao_m:.5f}% por ciclo)")
+        if inclinacao_m < 0:
+            print(f"\n TENDENCIA: QUEDA ({inclinacao_m:.5f}% por ciclo)")
+        elif inclinacao_m > 0:
+            print(f"\n TENDENCIA: SUBIDA (+{inclinacao_m:.5f}% por ciclo)")
         else:
             print("\n TENDENCIA: ESTAVEL")
 
         # Previsao para os proximos ciclos
-        print(f"\n --- Projecao para proximos ciclos ---")
+        print("\n --- Projecao para proximos ciclos ---")
         proximo = self.ciclos_usados
         for passo in [10, 50, 100]:
             ciclo_alvo = proximo + passo
@@ -156,14 +187,19 @@ class ModeloPrevisaoBateria:
         # Previsao do colapso
         print(f"\n --- Previsao de colapso (limite: {limite_critico}%) ---")
         ciclo_colapso = self.prever_ciclo_colapso(limite_critico)
+        resumo['ciclo_colapso'] = ciclo_colapso
         if ciclo_colapso > 0:
             ciclos_restantes = ciclo_colapso - self.ciclos_usados
+            resumo['ciclos_restantes'] = ciclos_restantes
             if ciclos_restantes > 0:
                 print(f"   Ciclo de risco   : {ciclo_colapso}")
                 print(f"   Ciclos restantes : {ciclos_restantes}")
+                resumo['alerta_preventivo'] = ciclos_restantes <= 50
             else:
-                print(f"   SITUACAO CRITICA: Bateria abaixo do limite!")
+                print("SITUACAO CRITICA: Bateria abaixo do limite!")
+                resumo['alerta_critico_previsao'] = True
         else:
             print("   Sem previsao de colapso no horizonte atual.")
 
         print("=" * 55 + "\n")
+        return resumo

@@ -1,5 +1,6 @@
 import csv
 import os
+import runpy
 
 from modules.modulos import (
     Missao_espacial, Modulo,
@@ -91,6 +92,11 @@ def mostrar_alertas(central):
         alerta = central.processar_proximo_alerta()
         print(f"  [{alerta['severidade']}] {alerta['mensagem']}")
         print(f"  Recomendação: {alerta['recomendacao']}\n")
+
+
+def mostrar_ultimo_evento_critico(missao):
+    ultimo_evento = missao.obter_ultimo_evento()
+    print(f"  Último evento crítico: {ultimo_evento}")
 
 #  SIMULADOR DE CENÁRIOS
 def simulador_de_cenarios():
@@ -196,6 +202,7 @@ def simulador_de_cenarios():
 
     print("\n  --- Alertas gerados ---")
     mostrar_alertas(central)
+    mostrar_ultimo_evento_critico(missao)
 
 
 # ============================================================
@@ -245,6 +252,7 @@ def telemetria_csv():
 
     print("\n  --- Alertas gerados durante a missão ---")
     mostrar_alertas(central)
+    mostrar_ultimo_evento_critico(missao)
 
 
 # ============================================================
@@ -318,7 +326,30 @@ def previsao_bateria():
         return
 
     modelo = ModeloPrevisaoBateria(missao)
-    modelo.exibir_resultado_completo(limite_critico=20.0)
+    resumo = modelo.exibir_resultado_completo(limite_critico=20.0)
+
+    if resumo.get('alerta_critico_previsao'):
+        central.enfileirar_alerta(
+            'CRITICO',
+            'Previsão indica bateria abaixo do limite crítico',
+            f"Verificar consumo e recarga imediatamente. Limite crítico estimado no ciclo {resumo['ciclo_colapso']}"
+        )
+    elif resumo.get('alerta_preventivo'):
+        central.enfileirar_alerta(
+            'ALERTA',
+            'Previsão indica degradação da bateria',
+            f"Planejar recarga ou reduzir consumo. Limite crítico em aproximadamente {resumo['ciclos_restantes']} ciclos"
+        )
+
+        print("  --- Alerta preventivo da previsão ---")
+        mostrar_alertas(central)
+        mostrar_ultimo_evento_critico(missao)
+
+
+def validacoes_minimas():
+    caminho = os.path.join(os.path.dirname(__file__), 'testes_minimos.py')
+    print("\n  Executando validacoes minimas...\n")
+    runpy.run_path(caminho, run_name='__main__')
 
 
 # ============================================================
@@ -334,6 +365,7 @@ def main():
         print("  [2] Telemetria Completa (CSV)")
         print("  [3] Análise Energética")
         print("  [4] Previsão da Bateria")
+        print("  [5] Validações Mínimas")
         print("  [0] Sair\n")
 
         opcao = input("  Escolha uma opção: ").strip()
@@ -346,6 +378,8 @@ def main():
             analise_energetica()
         elif opcao == '4':
             previsao_bateria()
+        elif opcao == '5':
+            validacoes_minimas()
         elif opcao == '0':
             print("\n  Sistema encerrado.\n")
             break
