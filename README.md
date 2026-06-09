@@ -1,6 +1,6 @@
 # 🚀 Astro Monitor — Sistema de Monitoramento de Missão Espacial
 
-**Equipe {Dev}Lounge**
+## Equipe {Dev}Lounge
 
 | Integrante | RM |
 |---|---|
@@ -10,17 +10,15 @@
 | Michelly | RM 573625 |
 | Maria Eduarda | RM 572267 |
 
----
 
 ## Resumo do problema e cenário analisado
 
 O **Astro Monitor** simula o sistema de controle e monitoramento de uma missão espacial experimental em Marte. A missão opera em ciclos de 5 minutos durante 500 ciclos totais (~41 horas), coletando telemetria de energia, suporte à vida, integridade estrutural e condições ambientais.
 
-O sistema ingere dados de um arquivo CSV (`data/dados.csv`) gerado com variações realistas, incluindo uma anomalia intencional entre os ciclos 250 e 300: uma tempestade de areia que reduz a geração solar a quase zero, eleva a radiação e degrada levemente a integridade estrutural. Isso testa a capacidade de diagnóstico do motor de regras.
+O sistema ingere dados de um arquivo CSV (`data/dados.csv`) gerado com variações realistas, incluindo uma **anomalia intencional** entre os ciclos 250 e 300: uma tempestade de areia que reduz a geração solar a quase zero, eleva a radiação e degrada levemente a integridade estrutural. Isso testa a capacidade de diagnóstico do motor de regras.
 
 O objetivo é identificar situações críticas automaticamente, gerar alertas priorizados e prever o comportamento da bateria para antecipar decisões operacionais.
 
----
 
 ## Arquivos principais
 
@@ -35,22 +33,19 @@ O objetivo é identificar situações críticas automaticamente, gerar alertas p
 | `data/gerar_dados.py` | Gerador dos 500 ciclos de telemetria simulada |
 | `data/dados.csv` | Arquivo de telemetria utilizado pelo sistema |
 
----
 
 ## Estruturas de dados utilizadas e justificativa
 
 | Estrutura | Onde é usada | Por quê |
 |---|---|---|
-| Dicionário (`dict`) | `self.modulos` em `Missao_espacial`; `self.sistemas` e `self.sensores` em `Modulo` | Acesso O(1) por identificador (ex: `modulos['ENE-01']`), sem necessidade de percorrer listas |
-| Lista (`list`) | `historico_geracao` e `historico_leituras` em `Sistema` e `Sensores` | Armazena séries temporais; acesso sequencial eficiente para cálculos de média e regressão |
-| Fila (`deque` — FIFO) | `fila_de_alertas` em `CentralDeAlertas` | Garante append e popleft em O(1); alertas processados na ordem de chegada |
-| Pilha (`list` — LIFO) | `log_eventos_criticos` em `Missao_espacial` | Registra eventos com append e acessa o mais recente por `[-1]`, preservando histórico |
-| Matriz (lista de listas) | `gerar_matriz_telemetria()` em `Missao_espacial` | Organiza leituras por ciclo e variável (Ciclo, Geração, Consumo, Bateria) sem numpy |
-| Hierarquia de objetos | `Missao_espacial → Modulo → Sistema / Sensor` | Representa a estrutura física da missão: módulos contêm sistemas e sensores acoplados |
+| **Dicionário (`dict`)** | `self.modulos` em `Missao_espacial`; `self.sistemas` e `self.sensores` em `Modulo` | Acesso O(1) por identificador (ex: `modulos['ENE-01']`), sem necessidade de percorrer listas |
+| **Lista (`list`)** | `historico_geracao` e `historico_leituras` em `Sistema` e `Sensores` | Armazena séries temporais; acesso sequencial eficiente para cálculos de média e regressão |
+| **Fila (`deque` — FIFO)** | `fila_de_alertas` em `CentralDeAlertas` | Garante `append` e `popleft` em O(1); alertas processados na ordem de chegada |
+| **Pilha (`list` — LIFO)** | `log_eventos_criticos` em `Missao_espacial` | Registra eventos com `append` e acessa o mais recente por `[-1]`, preservando histórico |
+| **Matriz (lista de listas)** | `gerar_matriz_telemetria()` em `Missao_espacial` | Organiza leituras por ciclo e variável (Ciclo, Geração, Consumo, Bateria) sem numpy |
+| **Hierarquia de objetos** | `Missao_espacial → Modulo → Sistema / Sensor` | Representa a estrutura física da missão: módulos contêm sistemas e sensores acoplados |
 
-> **Observação sobre o fluxo interno:** a missão mantém um dicionário de módulos, uma fila de alertas e uma pilha de eventos críticos. A pilha é usada como histórico interno dos eventos críticos gerados pelas regras; a fila garante que os alertas sejam processados na ordem em que foram detectados.
-
----
+**Observação sobre o fluxo interno:** a missão mantém um dicionário de módulos, uma fila de alertas e uma pilha de eventos críticos. A pilha é usada como histórico interno dos eventos críticos gerados pelas regras; a fila garante que os alertas sejam processados na ordem em que foram detectados.
 
 ## Status dos módulos críticos
 
@@ -67,13 +62,12 @@ Exemplo de tabela de status gerada pelo sistema após análise da telemetria:
 
 O status de cada módulo é determinado pelo motor de regras com base nas leituras dos sensores acoplados. Módulos com `status = False` (desligados) ou com sensores fora das faixas de segurança recebem classificação de Alerta ou Crítico.
 
----
 
 ## Regras lógicas principais do diagnóstico
 
 ### Expressão booleana principal
 
-```python
+```
 STATUS_CRITICO = (bateria < 30 AND (solar + eolico) < demanda)
               OR (radiacao > 1 AND solar < 3000)
               OR (o2 < 19 AND temp_int < 15)
@@ -81,8 +75,8 @@ STATUS_CRITICO = (bateria < 30 AND (solar + eolico) < demanda)
               OR (integridade < 70)
 ```
 
-- Se `STATUS_CRITICO = True`, o sistema enfileira um alerta **CRÍTICO** e aciona recomendações automáticas.
-- Se `STATUS_CRITICO = False` e todos os parâmetros estão em faixas normais, o sistema confirma status **NORMAL**.
+> Se `STATUS_CRITICO = True`, o sistema enfileira um alerta CRÍTICO e aciona recomendações automáticas.  
+> Se `STATUS_CRITICO = False` e todos os parâmetros estão em faixas normais, o sistema confirma status NORMAL.
 
 ### Tabela de regras implementadas
 
@@ -102,7 +96,6 @@ STATUS_CRITICO = (bateria < 30 AND (solar + eolico) < demanda)
 | Falha de sensor | `temp_int > 1000 OR bateria < 0` | CRÍTICO | Reiniciar sensores do módulo |
 | Módulos estáveis | Todos os parâmetros dentro das faixas | NORMAL | Sistemas e sensores indicam normalidade |
 
----
 
 ## Técnica de previsão utilizada e resultado
 
@@ -119,7 +112,6 @@ b = (Σy − m × Σx) / n
 
 **Como influencia o sistema:** O modelo é treinado com os 500 ciclos do CSV e projeta o nível da bateria para +10, +50 e +100 ciclos futuros. Se a inclinação `m` for negativa (bateria em queda), o sistema calcula o ciclo estimado de colapso (limite: 20%) e orienta o operador a acionar medidas preventivas de forma antecipada.
 
----
 
 ## Como executar
 
@@ -140,12 +132,12 @@ O sistema apresenta um menu interativo com as opções:
 [2] Telemetria Completa (CSV)
 [3] Análise Energética
 [4] Previsão da Bateria
+[5] Validações Mínimas
 [0] Sair
 ```
 
 As rotas de telemetria e análise populam a missão em memória, processam as regras e exibem os resultados no console.
 
----
 
 ## Exemplo de entrada e saída do sistema
 
@@ -196,7 +188,6 @@ Timestamp,Geracao_Solar_W,Geracao_Eolica_W,Demanda_Global_W,Nivel_Bateria_Pct,O2
    Ciclos restantes : 700
 ```
 
----
 
 ## Recomendações geradas pelo sistema
 
@@ -210,22 +201,12 @@ Por ordem de prioridade:
 6. **ALERTA** — Emitir alerta preventivo quando a previsão indicar colapso próximo
 7. **NORMAL** — Continuar operação padrão quando todos os sistemas estão estáveis
 
----
 
-## 🎥 Link do vídeo no YouTube
+## Link do vídeo no YouTube
 
-[▶️ Assista à apresentação do Astro Monitor](https://www.youtube.com/watch?v=NpEUCEKVi34)
+🎥 [Assista à apresentação do Astro Monitor](https://www.youtube.com/watch?v=NpEUCEKVi34)
 
----
 
 ## Conclusões e aprendizados
 
-O Astro Monitor demonstrou como conceitos fundamentais de computação — estruturas de dados, lógica booleana e análise preditiva — podem ser aplicados em um cenário realista e crítico.
-
-A equipe saiu do projeto com uma visão mais clara de como sistemas inteligentes tomam decisões baseadas em dados:
-
-- A **escolha de estruturas adequadas** (`dict` e `deque`) impacta diretamente a performance
-- **Implementar regressão linear do zero** reforça os fundamentos antes de abstrair para bibliotecas
-- **Simular anomalias reais**, como a tempestade de areia nos ciclos 250–300, evidencia como dados inconsistentes testam a robustez de qualquer motor de regras
-
-Essa experiência se conecta diretamente ao que a indústria de tecnologia exige: **transformar dados em decisões confiáveis**.
+O Astro Monitor demonstrou como conceitos fundamentais de computação — estruturas de dados, lógica booleana e análise preditiva — podem ser aplicados em um cenário realista e crítico. A equipe saiu do projeto com uma visão mais clara de como sistemas inteligentes tomam decisões baseadas em dados: escolha de estruturas adequadas (dicts e deque) impacta diretamente a performance; implementar regressão linear do zero reforça os fundamentos antes de abstrair para bibliotecas; e simular anomalias reais, como a tempestade de areia nos ciclos 250–300, evidencia como dados inconsistentes testam a robustez de qualquer motor de regras. Essa experiência se conecta diretamente ao que a indústria de tecnologia exige: transformar dados em decisões confiáveis.
